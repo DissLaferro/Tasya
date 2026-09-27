@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Для Таси ❤️</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #000;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+
+        .container {
+            text-align: center;
+            z-index: 10;
+        }
+
+        .question {
+            color: #fff;
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        }
+
+        .input-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        #nameInput {
+            padding: 15px 30px;
+            font-size: 1.5rem;
+            border: 2px solid #ff4d6d;
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            outline: none;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        #nameInput:focus {
+            border-color: #ff758f;
+            box-shadow: 0 0 30px rgba(255, 75, 109, 0.5);
+        }
+
+        #nameInput::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        #submitBtn {
+            padding: 15px 50px;
+            font-size: 1.3rem;
+            background: linear-gradient(135deg, #ff4d6d, #ff758f);
+            border: none;
+            border-radius: 50px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        #submitBtn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 40px rgba(255, 75, 109, 0.7);
+        }
+
+        .firework-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Rocket */
+        .rocket {
+            position: absolute;
+            width: 4px;
+            height: 20px;
+            background: linear-gradient(to top, #ff6b35, #ffd700);
+            border-radius: 2px;
+            box-shadow: 0 0 15px #ffd700, 0 0 30px #ff6b35;
+            opacity: 0;
+        }
+
+        @keyframes rocket-fly {
+            0% {
+                opacity: 1;
+                transform: translateY(100vh);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(var(--target-y));
+            }
+        }
+
+        .rocket.launch {
+            animation: rocket-fly 1s ease-out forwards;
+        }
+
+        /* Small Hearts from explosion */
+        .heart {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            opacity: 0;
+        }
+
+        .heart::before,
+        .heart::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: #ff1a1a;
+            border-radius: 50% 50% 0 0;
+            box-shadow: 0 0 10px #ff0000, 0 0 20px #ff0000;
+        }
+
+        .heart::before {
+            left: 50%;
+            transform: rotate(-45deg);
+            transform-origin: 0 100%;
+        }
+
+        .heart::after {
+            left: 0;
+            transform: rotate(45deg);
+            transform-origin: 100% 100%;
+        }
+
+        .heart.pink::before,
+        .heart.pink::after {
+            background: #ff69b4;
+            box-shadow: 0 0 10px #ff69b4, 0 0 20px #ff69b4;
+        }
+
+        .heart.light-red::before,
+        .heart.light-red::after {
+            background: #ff4d6d;
+            box-shadow: 0 0 10px #ff4d6d, 0 0 20px #ff4d6d;
+        }
+
+        .heart.deep-red::before,
+        .heart.deep-red::after {
+            background: #dc143c;
+            box-shadow: 0 0 10px #dc143c, 0 0 20px #dc143c;
+        }
+
+        .heart.rose::before,
+        .heart.rose::after {
+            background: #ff007f;
+            box-shadow: 0 0 10px #ff007f, 0 0 20px #ff007f;
+        }
+
+        @keyframes explode-out {
+            0% {
+                opacity: 1;
+                transform: translate(0, 0) scale(0.3);
+            }
+            30% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0.8;
+                transform: translate(var(--ex-x), var(--ex-y)) scale(0.8);
+            }
+        }
+
+        @keyframes form-heart {
+            0% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 1;
+                transform: translate(var(--final-x), var(--final-y)) scale(0.9);
+            }
+        }
+
+        @keyframes pulse-fade {
+            0% {
+                opacity: 1;
+                transform: translate(var(--final-x), var(--final-y)) scale(0.9);
+            }
+            50% {
+                opacity: 1;
+                transform: translate(var(--final-x), var(--final-y)) scale(1.1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(var(--final-x), var(--final-y)) scale(0.7);
+            }
+        }
+
+        .heart.explode {
+            animation: explode-out 0.6s ease-out forwards;
+        }
+
+        .heart.form {
+            animation: form-heart 1.5s ease-in-out forwards;
+        }
+
+        .heart.fade {
+            animation: pulse-fade 1.5s ease-in-out forwards;
+        }
+
+        /* "I Love You" text */
+        .love-text {
+            position: absolute;
+            font-size: 26px;
+            font-weight: bold;
+            color: #ff1a1a;
+            text-shadow: 0 0 20px #ff0000, 0 0 40px #ff0000;
+            opacity: 0;
+            white-space: nowrap;
+            z-index: 100;
+        }
+
+        @keyframes float-up {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-100px) scale(1.3);
+            }
+        }
+
+        .love-text.show {
+            animation: float-up 2.5s ease-out forwards;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="firework-container" id="fireworkContainer"></div>
+    
+    <div class="container" id="questionContainer">
+        <h1 class="question">Как вас зовут?</h1>
+        <div class="input-container">
+            <input type="text" id="nameInput" placeholder="Введите ваше имя" autocomplete="off">
+            <button id="submitBtn">Продолжить</button>
+        </div>
+    </div>
+
+    <script>
+        const questionContainer = document.getElementById('questionContainer');
+        const nameInput = document.getElementById('nameInput');
+        const submitBtn = document.getElementById('submitBtn');
+        const fireworkContainer = document.getElementById('fireworkContainer');
+
+        const heartColors = ['', 'pink', 'light-red', 'deep-red', 'rose'];
+
+        // Generate heart shape points
+        function getHeartPoints(centerX, centerY, size, count) {
+            const points = [];
+            
+            for (let i = 0; i < count; i++) {
+                const t = (i / count) * Math.PI * 2;
+                
+                const x = 16 * Math.pow(Math.sin(t), 3);
+                const y = -(13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t));
+                
+                points.push({
+                    x: centerX + x * size,
+                    y: centerY + y * size
+                });
+            }
+            
+            return points;
+        }
+
+        function launchFirework() {
+            const startX = Math.random() * window.innerWidth;
+            const targetY = 100 + Math.random() * (window.innerHeight * 0.4);
+            
+            // Create rocket
+            const rocket = document.createElement('div');
+            rocket.className = 'rocket';
+            rocket.style.left = startX + 'px';
+            rocket.style.setProperty('--target-y', targetY + 'px');
+            fireworkContainer.appendChild(rocket);
+            
+            setTimeout(() => {
+                rocket.classList.add('launch');
+            }, 10);
+            
+            // Explode hearts
+            setTimeout(() => {
+                rocket.remove();
+                explodeHearts(startX, targetY);
+            }, 1000);
+        }
+
+        function explodeHearts(explosionX, explosionY) {
+            const heartCount = 60;
+            const heartPoints = getHeartPoints(explosionX, explosionY, 8, heartCount);
+            const hearts = [];
+            
+            // Create hearts that explode outward
+            for (let i = 0; i < heartCount; i++) {
+                const angle = (i / heartCount) * Math.PI * 2;
+                const distance = 60 + Math.random() * 40;
+                const color = heartColors[Math.floor(Math.random() * heartColors.length)];
+                
+                const heart = document.createElement('div');
+                heart.className = `heart ${color}`;
+                
+                const exX = Math.cos(angle) * distance;
+                const exY = Math.sin(angle) * distance;
+                
+                const finalX = heartPoints[i].x - explosionX;
+                const finalY = heartPoints[i].y - explosionY;
+                
+                heart.style.left = explosionX + 'px';
+                heart.style.top = explosionY + 'px';
+                heart.style.setProperty('--ex-x', exX + 'px');
+                heart.style.setProperty('--ex-y', exY + 'px');
+                heart.style.setProperty('--final-x', finalX + 'px');
+                heart.style.setProperty('--final-y', finalY + 'px');
+                
+                fireworkContainer.appendChild(heart);
+                hearts.push(heart);
+                
+                setTimeout(() => {
+                    heart.classList.add('explode');
+                }, i * 10);
+            }
+            
+            // After explosion, form heart shape
+            setTimeout(() => {
+                hearts.forEach((heart, i) => {
+                    setTimeout(() => {
+                        heart.classList.remove('explode');
+                        heart.classList.add('form');
+                    }, i * 15);
+                });
+            }, 800);
+            
+            // Show "I Love You"
+            setTimeout(() => {
+                const text = document.createElement('div');
+                text.className = 'love-text';
+                text.textContent = 'I Love You';
+                text.style.left = (explosionX - 70) + 'px';
+                text.style.top = (explosionY - 30) + 'px';
+                fireworkContainer.appendChild(text);
+                
+                setTimeout(() => {
+                    text.classList.add('show');
+                }, 10);
+                
+                setTimeout(() => {
+                    text.remove();
+                }, 2500);
+            }, 1800);
+            
+            // Fade out
+            setTimeout(() => {
+                hearts.forEach((heart, i) => {
+                    setTimeout(() => {
+                        heart.classList.remove('form');
+                        heart.classList.add('fade');
+                    }, i * 10);
+                });
+            }, 3500);
+            
+            // Remove hearts
+            setTimeout(() => {
+                hearts.forEach(heart => heart.remove());
+            }, 5500);
+        }
+
+        function startCelebration() {
+            questionContainer.classList.add('hidden');
+            
+            // Launch initial burst
+            for (let i = 0; i < 3; i++) {
+                setTimeout(() => {
+                    launchFirework();
+                }, i * 400);
+            }
+            
+            // Continue launching
+            setInterval(() => {
+                launchFirework();
+            }, 500);
+        }
+
+        function checkName() {
+            const name = nameInput.value.trim().toLowerCase();
+            
+            const validNames = ['тася', 'tasya', 'tasia', 'tasy', 'тасюша', 'тась'];
+            
+            if (validNames.includes(name)) {
+                startCelebration();
+            } else {
+                document.body.innerHTML = '<div style="display: flex; justify-content: center; align-items: center; height: 100vh; color: #ff4d6d; font-size: 2rem; font-family: Arial, sans-serif; background: #000;">Доступ запрещён</div>';
+                setTimeout(() => {
+                    window.location.href = 'about:blank';
+                    window.close();
+                }, 1500);
+            }
+        }
+
+        submitBtn.addEventListener('click', checkName);
+        nameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                checkName();
+            }
+        });
+
+        nameInput.focus();
+    </script>
+</body>
+</html>
