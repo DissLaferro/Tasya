@@ -24,12 +24,13 @@
         .container {
             text-align: center;
             z-index: 10;
+            padding: 20px;
         }
 
         .question {
             color: #fff;
-            font-size: 2.5rem;
-            margin-bottom: 30px;
+            font-size: clamp(1.5rem, 6vw, 2.5rem);
+            margin-bottom: 20px;
             text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
         }
 
@@ -37,12 +38,12 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 20px;
+            gap: 15px;
         }
 
         #nameInput {
-            padding: 15px 30px;
-            font-size: 1.5rem;
+            padding: 12px 25px;
+            font-size: clamp(1rem, 4vw, 1.5rem);
             border: 2px solid #ff4d6d;
             border-radius: 50px;
             background: rgba(255, 255, 255, 0.1);
@@ -50,6 +51,8 @@
             outline: none;
             text-align: center;
             transition: all 0.3s ease;
+            width: 100%;
+            max-width: 300px;
         }
 
         #nameInput:focus {
@@ -62,8 +65,8 @@
         }
 
         #submitBtn {
-            padding: 15px 50px;
-            font-size: 1.3rem;
+            padding: 12px 40px;
+            font-size: clamp(1rem, 4vw, 1.3rem);
             background: linear-gradient(135deg, #ff4d6d, #ff758f);
             border: none;
             border-radius: 50px;
@@ -91,11 +94,11 @@
         /* Rocket */
         .rocket {
             position: absolute;
-            width: 4px;
-            height: 20px;
+            width: 3px;
+            height: 15px;
             background: linear-gradient(to top, #ff6b35, #ffd700);
             border-radius: 2px;
-            box-shadow: 0 0 15px #ffd700, 0 0 30px #ff6b35;
+            box-shadow: 0 0 10px #ffd700;
             opacity: 0;
         }
 
@@ -111,15 +114,16 @@
         }
 
         .rocket.launch {
-            animation: rocket-fly 1s ease-out forwards;
+            animation: rocket-fly 0.8s ease-out forwards;
         }
 
-        /* Small Hearts from explosion */
+        /* Heart - using transform for GPU acceleration */
         .heart {
             position: absolute;
-            width: 12px;
-            height: 12px;
+            width: 10px;
+            height: 10px;
             opacity: 0;
+            will-change: transform, opacity;
         }
 
         .heart::before,
@@ -130,7 +134,7 @@
             height: 100%;
             background: #ff1a1a;
             border-radius: 50% 50% 0 0;
-            box-shadow: 0 0 10px #ff0000, 0 0 20px #ff0000;
+            box-shadow: 0 0 8px #ff0000;
         }
 
         .heart::before {
@@ -148,25 +152,25 @@
         .heart.pink::before,
         .heart.pink::after {
             background: #ff69b4;
-            box-shadow: 0 0 10px #ff69b4, 0 0 20px #ff69b4;
+            box-shadow: 0 0 8px #ff69b4;
         }
 
         .heart.light-red::before,
         .heart.light-red::after {
             background: #ff4d6d;
-            box-shadow: 0 0 10px #ff4d6d, 0 0 20px #ff4d6d;
+            box-shadow: 0 0 8px #ff4d6d;
         }
 
         .heart.deep-red::before,
         .heart.deep-red::after {
             background: #dc143c;
-            box-shadow: 0 0 10px #dc143c, 0 0 20px #dc143c;
+            box-shadow: 0 0 8px #dc143c;
         }
 
         .heart.rose::before,
         .heart.rose::after {
             background: #ff007f;
-            box-shadow: 0 0 10px #ff007f, 0 0 20px #ff007f;
+            box-shadow: 0 0 8px #ff007f;
         }
 
         @keyframes explode-out {
@@ -209,24 +213,24 @@
         }
 
         .heart.explode {
-            animation: explode-out 0.6s ease-out forwards;
+            animation: explode-out 0.5s ease-out forwards;
         }
 
         .heart.form {
-            animation: form-heart 1.5s ease-in-out forwards;
+            animation: form-heart 1.2s ease-in-out forwards;
         }
 
         .heart.fade {
-            animation: pulse-fade 1.5s ease-in-out forwards;
+            animation: pulse-fade 1s ease-in-out forwards;
         }
 
         /* "I Love You" text */
         .love-text {
             position: absolute;
-            font-size: 26px;
+            font-size: clamp(18px, 5vw, 26px);
             font-weight: bold;
             color: #ff1a1a;
-            text-shadow: 0 0 20px #ff0000, 0 0 40px #ff0000;
+            text-shadow: 0 0 15px #ff0000;
             opacity: 0;
             white-space: nowrap;
             z-index: 100;
@@ -239,16 +243,25 @@
             }
             100% {
                 opacity: 0;
-                transform: translateY(-100px) scale(1.3);
+                transform: translateY(-80px) scale(1.2);
             }
         }
 
         .love-text.show {
-            animation: float-up 2.5s ease-out forwards;
+            animation: float-up 2s ease-out forwards;
         }
 
         .hidden {
             display: none !important;
+        }
+
+        /* Reduce motion for accessibility */
+        @media (prefers-reduced-motion: reduce) {
+            .heart,
+            .rocket,
+            .love-text {
+                animation-duration: 0.01ms !important;
+            }
         }
     </style>
 </head>
@@ -270,6 +283,11 @@
         const fireworkContainer = document.getElementById('fireworkContainer');
 
         const heartColors = ['', 'pink', 'light-red', 'deep-red', 'rose'];
+        
+        // Fewer hearts on mobile for better performance
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const heartCount = isMobile ? 30 : 50;
+        const launchInterval = isMobile ? 800 : 500;
 
         // Generate heart shape points
         function getHeartPoints(centerX, centerY, size, count) {
@@ -292,7 +310,7 @@
 
         function launchFirework() {
             const startX = Math.random() * window.innerWidth;
-            const targetY = 100 + Math.random() * (window.innerHeight * 0.4);
+            const targetY = 80 + Math.random() * (window.innerHeight * 0.4);
             
             // Create rocket
             const rocket = document.createElement('div');
@@ -309,18 +327,17 @@
             setTimeout(() => {
                 rocket.remove();
                 explodeHearts(startX, targetY);
-            }, 1000);
+            }, 800);
         }
 
         function explodeHearts(explosionX, explosionY) {
-            const heartCount = 60;
-            const heartPoints = getHeartPoints(explosionX, explosionY, 8, heartCount);
+            const heartPoints = getHeartPoints(explosionX, explosionY, 6, heartCount);
             const hearts = [];
             
             // Create hearts that explode outward
             for (let i = 0; i < heartCount; i++) {
                 const angle = (i / heartCount) * Math.PI * 2;
-                const distance = 60 + Math.random() * 40;
+                const distance = 40 + Math.random() * 30;
                 const color = heartColors[Math.floor(Math.random() * heartColors.length)];
                 
                 const heart = document.createElement('div');
@@ -344,7 +361,7 @@
                 
                 setTimeout(() => {
                     heart.classList.add('explode');
-                }, i * 10);
+                }, i * 8);
             }
             
             // After explosion, form heart shape
@@ -353,17 +370,17 @@
                     setTimeout(() => {
                         heart.classList.remove('explode');
                         heart.classList.add('form');
-                    }, i * 15);
+                    }, i * 12);
                 });
-            }, 800);
+            }, 600);
             
             // Show "I Love You"
             setTimeout(() => {
                 const text = document.createElement('div');
                 text.className = 'love-text';
                 text.textContent = 'I Love You';
-                text.style.left = (explosionX - 70) + 'px';
-                text.style.top = (explosionY - 30) + 'px';
+                text.style.left = (explosionX - 60) + 'px';
+                text.style.top = (explosionY - 25) + 'px';
                 fireworkContainer.appendChild(text);
                 
                 setTimeout(() => {
@@ -372,8 +389,8 @@
                 
                 setTimeout(() => {
                     text.remove();
-                }, 2500);
-            }, 1800);
+                }, 2000);
+            }, 1500);
             
             // Fade out
             setTimeout(() => {
@@ -381,30 +398,31 @@
                     setTimeout(() => {
                         heart.classList.remove('form');
                         heart.classList.add('fade');
-                    }, i * 10);
+                    }, i * 8);
                 });
-            }, 3500);
+            }, 3000);
             
             // Remove hearts
             setTimeout(() => {
                 hearts.forEach(heart => heart.remove());
-            }, 5500);
+            }, 4500);
         }
 
         function startCelebration() {
             questionContainer.classList.add('hidden');
             
             // Launch initial burst
-            for (let i = 0; i < 3; i++) {
+            const initialCount = isMobile ? 2 : 3;
+            for (let i = 0; i < initialCount; i++) {
                 setTimeout(() => {
                     launchFirework();
-                }, i * 400);
+                }, i * 300);
             }
             
             // Continue launching
             setInterval(() => {
                 launchFirework();
-            }, 500);
+            }, launchInterval);
         }
 
         function checkName() {
@@ -415,7 +433,7 @@
             if (validNames.includes(name)) {
                 startCelebration();
             } else {
-                document.body.innerHTML = '<div style="display: flex; justify-content: center; align-items: center; height: 100vh; color: #ff4d6d; font-size: 2rem; font-family: Arial, sans-serif; background: #000;">Доступ запрещён</div>';
+                document.body.innerHTML = '<div style="display: flex; justify-content: center; align-items: center; height: 100vh; color: #ff4d6d; font-size: clamp(1.2rem, 5vw, 2rem); font-family: Arial, sans-serif; background: #000; text-align: center; padding: 20px;">Доступ запрещён</div>';
                 setTimeout(() => {
                     window.location.href = 'about:blank';
                     window.close();
